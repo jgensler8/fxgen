@@ -1,0 +1,13 @@
+package main
+
+import (
+    . "{{package}}/models"
+)
+
+{{#operations}}
+    {{#operation}}
+func {{{operationId}}}({{#allParams}}{{#required}}{{paramName}} {{{dataType}}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}}) ({{#returnType}}{{{returnType}}}, {{/returnType}} error) {
+    return {{#returnType}}nil, {{/returnType}}nil
+}
+    {{/operation}}
+{{/operations}}

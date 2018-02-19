@@ -1,0 +1,5 @@
+package: github.com/jgensler8/testfunction
+import:
+- package: github.com/GoogleCloudPlatform/cloud-functions-go
+  subpackages:
+  - nodego

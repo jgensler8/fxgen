@@ -1,0 +1,58 @@
+package main
+
+import (
+	"flag"
+	"net/http"
+    "encoding/json"
+
+	"github.com/GoogleCloudPlatform/cloud-functions-go/nodego"
+
+{{#operations}}
+    . "{{package}}/models"
+{{/operations}}
+)
+
+func main() {
+	flag.Parse()
+	http.HandleFunc(nodego.HTTPTrigger, func(w http.ResponseWriter, r *http.Request) {
+{{#operations}}
+    {{#operation}}
+        // ###############################################################################
+    {{#allParams}}
+        var {{paramName}} {{dataType}}
+    {{/allParams}}
+    {{#hasQueryParams}}
+    queryValues := r.URL.Query()
+    {{/hasQueryParams}}
+    {{#queryParams}}
+        {{paramName}} = queryValues.Get("{{paramName}}").({{dataType}}))
+    {{/queryParams}}
+    {{#bodyParam}}
+        {{^isEnum}}{{^isPrimitiveType}}{{^isDateTime}}
+        decoder := json.NewDecoder(r.Body)
+        err := decoder.Decode(&{{paramName}})
+        if err != nil {
+            w.WriteHeader(http.StatusBadRequest)
+            w.Write([]byte(err.Error()))
+            return
+        }
+        {{/isDateTime}}{{/isPrimitiveType}}{{/isEnum}}
+    {{/bodyParam}}
+    {{#returnType}}var r {{{returnType}}} {{/returnType}}
+    {{#returnType}}r, {{/returnType}}err = {{operationId}}({{#allParams}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/allParams}})
+        if err != nil {
+            w.WriteHeader(http.StatusInternalServerError)
+            w.Write([]byte(err.Error()))
+            return
+        }
+    {{#returnType}}
+        rs, err := json.Marshal(&r)
+        w.WriteStatus(http.StatusOK)
+        w.Write(rs)
+    {{/returnType}}
+    {{/operation}}
+{{/operations}}
+	})
+
+	nodego.TakeOver()
+}
