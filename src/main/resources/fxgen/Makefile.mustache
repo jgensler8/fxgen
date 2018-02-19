@@ -33,13 +33,13 @@ MODEL_MOUNT=-v $$PWD/models:/go/src/${PACKAGE}/models
 
 %.go: %.out
 #	GOARCH="amd64" GOOS="linux" CGO_ENABLED=0 go build -tags node $(GOBIN).go
-	docker run --rm --name builder -it ${PKG_MOUNT} ${WRAP_MOUNT} ${MODEL_MOUNT} ${GLIDE_MOUNT} -v /tmp/build:/tmp/build --workdir /go/src/${PACKAGE} ${GO_IMAGE}:${GO_IMAGE_TAG} sh -c "glide install && go build -o /tmp/build/${GOBIN}"
+	docker run --rm --name builder -it ${PKG_MOUNT} ${WRAP_MOUNT} ${MODEL_MOUNT} ${GLIDE_MOUNT} -v /tmp/build:/tmp/build --workdir /go/src/${PACKAGE} ${GO_IMAGE}:${GO_IMAGE_TAG} sh -c "glide install && GOARCH="amd64" GOOS="linux" CGO_ENABLED=0 go build -o /tmp/build/${GOBIN}"
 	mv /tmp/build/${GOBIN} output/fx/$*/${GOBIN}
 
 # not sure why we need to run install before zipping. Might as well let GCF install our dependency
 %.js: %.out
 	docker run --rm --name builder -it -v $$PWD:/workdir --workdir /workdir node:8 npm install --ignore-scripts --save local_modules/execer
-	cp -r node_modules output/fx/$*/node_modules
+	cp -r node_modules output/fx/$*
 	cp index.js output/fx/$*/index.js
 	cp package.json output/fx/$*/package.json
 
