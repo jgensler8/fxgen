@@ -3,19 +3,18 @@ package main
 import (
 	"flag"
 	"net/http"
-//    "encoding/json"
+    "encoding/json"
 
 	"github.com/GoogleCloudPlatform/cloud-functions-go/nodego"
 
 {{#operations}}
-//    . "{{package}}/models"
+    . "{{package}}/models"
 {{/operations}}
 )
 
 func main() {
 	flag.Parse()
 	http.HandleFunc(nodego.HTTPTrigger, func(w http.ResponseWriter, r *http.Request) {
-/*
 {{#operations}}
     {{#operation}}
         // ###############################################################################
@@ -53,7 +52,6 @@ func main() {
     {{/returnType}}
     {{/operation}}
 {{/operations}}
-*/
 	})
 
 	nodego.TakeOver()
