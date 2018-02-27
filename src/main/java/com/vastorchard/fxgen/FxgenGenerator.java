@@ -106,6 +106,7 @@ public class FxgenGenerator extends AbstractGoCodegen implements CodegenConfig {
         supportingFiles.add(new SupportingFile("package.json", "", "package.json"));
         supportingFiles.add(new SupportingFile("index.js", "", "index.js"));
         supportingFiles.add(new SupportingFile("glide.yaml", "", "glide.yaml"));
+        supportingFiles.add(new SupportingFile("supportingFiles/config.json", "supportingFiles", "config.json"));
         // execer
         supportingFiles.add(new SupportingFile("local_modules/execer/binding.gyp", "local_modules/execer", "binding.gyp"));
         supportingFiles.add(new SupportingFile("local_modules/execer/execer.cc", "local_modules/execer", "execer.cc"));

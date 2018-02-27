@@ -75,10 +75,7 @@
         },
         "security": [
           {
-            "petstore_auth": [
-              "write:pets",
-              "read:pets"
-            ]
+            "Auth0": []
           }
         ]
       },
@@ -850,6 +847,11 @@
         "write:pets": "modify pets in your account",
         "read:pets": "read your pets"
       }
+    },
+    "Auth0": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization"
     },
     "api_key": {
       "type": "apiKey",

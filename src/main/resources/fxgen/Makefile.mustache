@@ -23,22 +23,26 @@ FUNCTIONS = $(shell ls | sed -e 's/-pkg.go/.function/' | sed -e 's/-wrap.go/.fun
 
 all: ${FUNCTIONS}
 
-%.function: %.go %.js %.zip
+%.function: %.go %.js %.supportingfiles %.zip
 	echo done with $<
 
 PKG_MOUNT=-v $$PWD/$*-pkg.go:/go/src/${PACKAGE}/$*-pkg.go
 WRAP_MOUNT=-v $$PWD/$*-wrap.go:/go/src/${PACKAGE}/$*-wrap.go
 GLIDE_MOUNT=-v $$PWD/glide.yaml:/go/src/${PACKAGE}/glide.yaml
 MODEL_MOUNT=-v $$PWD/models:/go/src/${PACKAGE}/models
+GO_BUILD_TAGS=node
 
 %.go: %.out
 #	GOARCH="amd64" GOOS="linux" CGO_ENABLED=0 go build -tags node $(GOBIN).go
-	docker run --rm --name builder -it ${PKG_MOUNT} ${WRAP_MOUNT} ${MODEL_MOUNT} ${GLIDE_MOUNT} -v /tmp/build:/tmp/build --workdir /go/src/${PACKAGE} ${GO_IMAGE}:${GO_IMAGE_TAG} sh -c "glide install && GOARCH="amd64" GOOS="linux" CGO_ENABLED=0 go build -tags node -o /tmp/build/${GOBIN}"
+	docker run --rm --name builder -it ${PKG_MOUNT} ${WRAP_MOUNT} ${MODEL_MOUNT} ${GLIDE_MOUNT} -v /tmp/build:/tmp/build --workdir /go/src/${PACKAGE} ${GO_IMAGE}:${GO_IMAGE_TAG} sh -c "glide install && GOARCH="amd64" GOOS="linux" CGO_ENABLED=0 go build -tags ${GO_BUILD_TAGS} -o /tmp/build/${GOBIN}"
 	mv /tmp/build/${GOBIN} output/fx/$*/${GOBIN}
+
+NODE_IMAGE=node
+NODE_IMAGE_TAG=8
 
 # not sure why we need to run install before zipping. Might as well let GCF install our dependency
 %.js: %.out
-	docker run --rm --name builder -it -v $$PWD:/workdir --workdir /workdir node:8 npm install --ignore-scripts --save local_modules/execer
+	docker run --rm --name builder -it -v $$PWD:/workdir --workdir /workdir ${NODE_IMAGE}:${NODE_IMAGE_TAG} npm install --ignore-scripts --save local_modules/execer
 	cp -r node_modules output/fx/$*
 	cp index.js output/fx/$*/index.js
 	cp package.json output/fx/$*/package.json
@@ -46,5 +50,11 @@ MODEL_MOUNT=-v $$PWD/models:/go/src/${PACKAGE}/models
 %.out:
 	mkdir -p output/fx/$*
 
+%.supportingfiles:
+	cp -r supportingFiles output/fx/$*/supportingFiles
+
 %.zip:
 	cd output/fx/$* && zip -FS -r $(OUT) main node_modules index.js package.json -x *build*
+
+%.test: %.function
+	docker run --rm --name test -p 8080:8080 -v $$PWD/output/fx/$*:/workdir --workdir /workdir ${NODE_IMAGE}:${NODE_IMAGE_TAG} ./main
