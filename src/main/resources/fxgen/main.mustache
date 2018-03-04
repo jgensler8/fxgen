@@ -1,7 +1,14 @@
+{{#operations}}
+    {{#operation}}
+// +build api_{{operationIdSnakeCase}}
+    {{/operation}}
+{{/operations}}
+
 package main
 
 import (
     "log"
+    "fmt"
 	"flag"
 	"net/http"
     "encoding/json"
@@ -13,6 +20,8 @@ import (
             {{#isApiKey}}
     "context"
     "encoding/base64"
+    "crypto/x509"
+    "encoding/pem"
     "gopkg.in/square/go-jose.v2"
     "github.com/auth0-community/go-auth0"
             {{/isApiKey}}
@@ -76,6 +85,28 @@ var (
     })
 )
 
+func LoadPublicKey(data []byte) (interface{}, error) {
+input := data
+
+block, _ := pem.Decode(data)
+if block != nil {
+input = block.Bytes
+}
+
+// Try to load SubjectPublicKeyInfo
+pub, err0 := x509.ParsePKIXPublicKey(input)
+if err0 == nil {
+return pub, nil
+}
+
+cert, err1 := x509.ParseCertificate(input)
+if err1 == nil {
+return cert.PublicKey, nil
+}
+
+return nil, fmt.Errorf("square/go-jose: parse error, got '%s' and '%s'", err0, err1)
+}
+
 func main() {
 	flag.Parse()
 
@@ -95,14 +126,15 @@ func main() {
         {{#authMethods}}
             {{#isApiKey}}
             if ("{{name}}" == "Auth0") {
-                secret, _ := base64.URLEncoding.DecodeString(viper.Get("AUTH0_CLIENT_SECRET").(string))
+                key, _ := base64.StdEncoding.DecodeString(viper.Get("AUTH0_PUBLIC_KEY_B64").(string))
+                secret, _ := LoadPublicKey(key)
                 secretProvider := auth0.NewKeyProvider(secret)
                 audience := viper.Get("AUTH0_CLIENT_ID").(string)
 
-                configuration := auth0.NewConfiguration(secretProvider, []string{audience}, viper.Get("AUTH0_DOMAIN").(string), jose.HS256)
-                validator := auth0.NewValidator(configuration)
+                configuration := auth0.NewConfiguration(secretProvider, []string{ audience, {{#scopes}}"{{scope}}"{{#hasMore}},{{/hasMore}}{{/scopes}} }, viper.Get("AUTH0_DOMAIN").(string), jose.RS256)
+                validator := auth0.NewValidator(configuration, nil)
 
-                fx = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            fx = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
                     token, err := validator.ValidateRequest(r)
                     if err != nil {
                         log.Printf("Failed to Authenticate request %v", err)

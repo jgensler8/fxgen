@@ -103,15 +103,8 @@ public class FxgenGenerator extends AbstractGoCodegen implements CodegenConfig {
          * it will be processed by the template engine.  Otherwise, it will be copied
          */
         supportingFiles.add(new SupportingFile("Makefile.mustache", "", "Makefile"));
-        supportingFiles.add(new SupportingFile("package.json", "", "package.json"));
-        supportingFiles.add(new SupportingFile("index.js", "", "index.js"));
-        supportingFiles.add(new SupportingFile("glide.yaml", "", "glide.yaml"));
+        supportingFiles.add(new SupportingFile("glide.yaml.mustache", "", "glide.yaml"));
         supportingFiles.add(new SupportingFile("supportingFiles/config.json", "supportingFiles", "config.json"));
-        // execer
-        supportingFiles.add(new SupportingFile("local_modules/execer/binding.gyp", "local_modules/execer", "binding.gyp"));
-        supportingFiles.add(new SupportingFile("local_modules/execer/execer.cc", "local_modules/execer", "execer.cc"));
-        supportingFiles.add(new SupportingFile("local_modules/execer/index.js", "local_modules/execer", "index.js"));
-        supportingFiles.add(new SupportingFile("local_modules/execer/package.json", "local_modules/execer", "package.json"));
     }
 
     public FxgenGenerator() {

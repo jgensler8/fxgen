@@ -1,5 +1,5 @@
 {
-  "AUTH0_CLIENT_SECRET": "abcd",
+  "AUTH0_PUBLIC_KEY_B64": "aGVsbG8gd29ybGQK",
   "AUTH0_CLIENT_ID": "abcd",
   "AUTH0_DOMAIN": "https://mysampledomain.auth0.com/"
 }
